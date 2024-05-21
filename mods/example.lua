@@ -1,4 +1,4 @@
-patchedAce = false
+patchedKeegan = false
 jokerHook = initJokerHook()
 
 if sendDebugMessage == nil then
@@ -6,33 +6,41 @@ if sendDebugMessage == nil then
     end
 end
 
+------------------------------------------This section is for all of the joker logic
+
 table.insert(mods, {
-    mod_id = "flying_ace",
-    name = "Flying Ace",
+    mod_id = "even_keegan",
+    name = "Even Keegan",
     version = "1.0",
     author = "JWH",
-    description = "Aces have a 1 in 3 chance to give 2x mult",
+    description = "Even cards give 1.5x mult",
     enabled = true,
     on_post_update = function()
-        if not patchedAce then
-            sendDebugMessage("Adding flying ace to centers!")
+        if not patchedKeegan then
 
-            jokerHook.addJoker(self, "j_flyingace", "Flying Ace", nil, true, 1, {
+            --------------------------------------------------
+            sendDebugMessage("Adding Even Keegan to centers!")
+
+            jokerHook.addJoker(self, "j_evenKeegan", "Even Keegan", nil, true, 1, {
                 x = 0,
                 y = 0
             }, nil, {
                 extra = 2
-            }, {"Aces have a 1 in 3", "chance to give", "2x mult"}, 1, true, true)
-
-            sendDebugMessage("Inserting flying_ace into calculate_joker!")
+            }, {"Evens give", "{X:red,C:white} X1.5 {} Mult"}, 1, true, true)
+            -----------------------------------------------------------------
+            sendDebugMessage("Inserting even_keegan into calculate_joker!")
 
             local toReplaceLogic =
-                "if self.ability.name == 'Bloodstone' and context.other_card:is_suit('Hearts') and pseudorandom('bloodstone') < G.GAME.probabilities.normal/self.ability.extra.odds then"
+                "if self.ability.name == 'Even Steven' and context.other_card:get_id() <= 10 and context.other_card:get_id() >= 0 and context.other_card:get_id()%2 == 0 then"
 
             local replacementLogic = [[
-                if self.ability.name == 'Flying Ace' and context.other_card:get_id() == 14 and pseudorandom('bloodstone') < G.GAME.probabilities.normal/self.ability.extra.odds then
+                if self.ability.name == 'Even Keegan' and
+                context.other_card:get_id() <= 10 and 
+                context.other_card:get_id() >= 0 and
+                context.other_card:get_id()%2 == 0
+                then
                     return {
-                        x_mult = self.ability.extra.Xmult,
+                        mult = self.ability.extra,
                         card = self
                     }
                 end
@@ -40,30 +48,30 @@ table.insert(mods, {
 
             inject("card.lua", "Card:calculate_joker", toReplaceLogic:gsub("([^%w])", "%%%1"), replacementLogic)
 
-            ------------------------------------------
-            sendDebugMessage("Adding texture file for flying ace!")
+            ------------------------------------------ This is used to add art to the game
+            sendDebugMessage("Adding texture file for Even Keegan!")
 
             local toReplaceAtlas =
                 "{name = 'chips', path = \"resources/textures/\"..self.SETTINGS.GRAPHICS.texture_scaling..\"x/chips.png\",px=29,py=29}"
 
             local replacementAtlas = [[
                 {name = 'chips', path = "resources/textures/"..self.SETTINGS.GRAPHICS.texture_scaling.."x/chips.png",px=29,py=29},
-                {name = 'flying_ace', path = "pack/"..self.SETTINGS.GRAPHICS.texture_scaling.."x/flying_ace.png",px=71,py=95}
+                {name = 'even_keegan', path = "pack/"..self.SETTINGS.GRAPHICS.texture_scaling.."x/even_keegan.png",px=71,py=95}
             ]]
 
             inject("game.lua", "Game:set_render_settings", toReplaceAtlas:gsub("([^%w])", "%%%1"), replacementAtlas)
 
             G:set_render_settings()
 
-            -------------------------------------------------------
-            sendDebugMessage("Adding sprite draw logic for flying ace!")
+            ------------------------------------------------------- Not 100% sure what this does, but I think it has something to do with art
+            sendDebugMessage("Adding sprite draw logic for Even Keegan!")
 
             local toReplaceTexLoad =
                 "elseif self.config.center.set == 'Voucher' and not self.config.center.unlocked and not self.params.bypass_discovery_center then"
 
             local replacementTexLoad = [[
-                elseif _center.name == 'Flying Ace' then
-                    self.children.center = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ASSET_ATLAS['flying_ace'], j_flyingace)
+                elseif _center.name == 'Even Keegan' then
+                    self.children.center = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ASSET_ATLAS['even_keegan'], j_evenKeegan)
                 elseif self.config.center.set == 'Voucher' and not self.config.center.unlocked and not self.params.bypass_discovery_center then
             ]]
 
@@ -71,9 +79,9 @@ table.insert(mods, {
 
             -------------------------------------------------------
 
-            patchedAce = true
+            patchedKeegan = true
 
-            sendDebugMessage("Patched flying ace mod!")
+            sendDebugMessage("Patched Even Keegan mod!")
         end
     end
 })
