@@ -1,105 +1,65 @@
-patchedKeegan = false
-jokerHook = initJokerHook()
+local mod_id = "j_keegan_fortress"
+local mod_name = "Even Keegan"
+local mod_version = "1.0"
+local mod_author = "fortress"
 
-if sendDebugMessage == nil then
-    sendDebugMessage = function(_)
-    end
-end
-
-------------------------------------------This section is for all of the joker logic
-
-table.insert(mods, {
-    mod_id = "even_keegan",
-    name = "Even Keegan",
-    version = "1.0",
-    author = "JWH",
-    description = "Even cards give 1.5x mult",
-    enabled = true,
-    on_post_update = function()
-        if not patchedKeegan then
-
-            --------------------------------------------------
-            sendDebugMessage("Adding Even Keegan to centers!")
-
-            jokerHook.addJoker(self, "j_evenKeegan", "Even Keegan", nil, true, 1, {
-                x = 0,
-                y = 0
-            }, nil, {
-                extra = 2
-            }, {"Evens give", "{X:red,C:white} X1.5 {} Mult"}, 1, true, true)
-            -----------------------------------------------------------------
-            sendDebugMessage("Inserting even_keegan into calculate_joker!")
-
-            local toReplaceLogic =
-                "if self.ability.name == 'Even Steven' and context.other_card:get_id() <= 10 and context.other_card:get_id() >= 0 and context.other_card:get_id()%2 == 0 then"
-
-            local replacementLogic = [[
-                if self.ability.name == 'Even Keegan' and
-                context.other_card:get_id() <= 10 and 
-                context.other_card:get_id() >= 0 and
-                context.other_card:get_id()%2 == 0
-                then
-                    return {
-                        mult = self.ability.extra,
-                        card = self
-                    }
-                end
-            ]]
-
-            inject("card.lua", "Card:calculate_joker", toReplaceLogic:gsub("([^%w])", "%%%1"), replacementLogic)
-
-            ------------------------------------------ This is used to add art to the game
-            sendDebugMessage("Adding texture file for Even Keegan!")
-
-            local toReplaceAtlas =
-                "{name = 'chips', path = \"resources/textures/\"..self.SETTINGS.GRAPHICS.texture_scaling..\"x/chips.png\",px=29,py=29}"
-
-            local replacementAtlas = [[
-                {name = 'chips', path = "resources/textures/"..self.SETTINGS.GRAPHICS.texture_scaling.."x/chips.png",px=29,py=29},
-                {name = 'even_keegan', path = "pack/"..self.SETTINGS.GRAPHICS.texture_scaling.."x/even_keegan.png",px=71,py=95}
-            ]]
-
-            inject("game.lua", "Game:set_render_settings", toReplaceAtlas:gsub("([^%w])", "%%%1"), replacementAtlas)
-
-            G:set_render_settings()
-
-            ------------------------------------------------------- Not 100% sure what this does, but I think it has something to do with art
-            sendDebugMessage("Adding sprite draw logic for Even Keegan!")
-
-            local toReplaceTexLoad =
-                "elseif self.config.center.set == 'Voucher' and not self.config.center.unlocked and not self.params.bypass_discovery_center then"
-
-            local replacementTexLoad = [[
-                elseif _center.name == 'Even Keegan' then
-                    self.children.center = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ASSET_ATLAS['even_keegan'], j_evenKeegan)
-                elseif self.config.center.set == 'Voucher' and not self.config.center.unlocked and not self.params.bypass_discovery_center then
-            ]]
-
-            inject("card.lua", "Card:set_sprites", toReplaceTexLoad:gsub("([^%w])", "%%%1"), replacementTexLoad)
-
-            -------------------------------------------------------
-
-            patchedKeegan = true
-
-            sendDebugMessage("Patched Even Keegan mod!")
+--[[
+    this function will be run in this loop:
+    for i, effect in ipairs(centerHook.jokerEffects) do
+        if effect(self, context) then
+            return effect(self, context)
         end
     end
+]]
+local function jokerEffect(card, context)
+    if self.ability.name == 'Even Keegan' and context.other_card:get_id() <= 10 and context.other_card:get_id() >= 0 and
+        context.other_card:get_id() % 2 == 0 then
+        return {
+            x_mult = self.ability.extra,
+            colour = G.C.RED,
+            card = self
+        }
+    end
+end
+table.insert(mods, {
+    mod_id = mod_id,
+    name = mod_name,
+    version = mod_version,
+    author = mod_author,
+    enabled = true,
+    on_enable = function()
+        centerHook.addJoker(self, 'j_keegan_fortress', -- id
+        'Even Keegan', -- name
+        jokerEffect(), -- effect function
+        nil, -- order
+        true, -- unlocked
+        true, -- discovered
+        8, -- cost
+        {
+            x = 0,
+            y = 0
+        }, -- sprite position
+        nil, -- internal effect description
+        {
+            mult = 2
+        }, -- config
+        {"Even cards", "give {C:red}x2{} Mult"}, -- description text
+        2, -- rarity
+        true, -- blueprint compatibility
+        true, -- eternal compatibility
+        nil, -- exclusion pool flag
+        nil, -- inclusion pool flag
+        nil, -- unlock condition
+        true, -- collection alert
+        "pack", -- sprite path
+        "even_keegan.png", -- sprite name
+        {
+            px = 71,
+            py = 95
+        } -- sprite size
+        )
+    end,
+    on_disable = function()
+        centerHook.removeJoker(self, "j_keegan_fortress")
+    end
 })
-
--- if self.ability.name == 'Scholar' and
---                     context.other_card:get_id() == 14 then
---                         return {
---                             chips = self.ability.extra.chips,
---                             mult = self.ability.extra.mult,
---                             card = self
---                         }
---                     end
-
---                     if self.ability.name ==  'Bloodstone' and
---                 context.other_card:is_suit("Hearts") and 
---                 pseudorandom('bloodstone') < G.GAME.probabilities.normal/self.ability.extra.odds then
---                     return {
---                         x_mult = self.ability.extra.Xmult,
---                         card = self
---                     }
---                 end
