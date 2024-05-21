@@ -1,23 +1,24 @@
-local mod_id = "j_keegan_fortress"
+local mod_id = "j_evenkeegan_fortress"
 local mod_name = "Even Keegan"
 local mod_version = "1.0"
 local mod_author = "fortress"
 
---[[
-    this function will be run in this loop:
-    for i, effect in ipairs(centerHook.jokerEffects) do
-        if effect(self, context) then
-            return effect(self, context)
-        end
-    end
-]]
 local function jokerEffect(card, context)
-    if self.ability.name == 'Even Keegan' and context.other_card:get_id() <= 10 and context.other_card:get_id() >= 0 and
-        context.other_card:get_id() % 2 == 0 then
+    if card.ability.name == 'Even Keegan' and context.cardarea == G.jokers and not context.before and not context.after and
+        context.full_hand and #context.full_hand >= 1 then
+        local evens = 0
+        for i = 1, #context.full_hand do
+            if context.full_hand[i].base.id == 2 or 4 or 6 or 8 or 10 then
+                evens = evens + 1
+            end
+        end
         return {
-            x_mult = self.ability.extra,
-            colour = G.C.RED,
-            card = self
+            message = localize {
+                type = 'variable',
+                key = 'a_xmult',
+                vars = {card.ability.extra.Xmult}
+            },
+            Xmult_mod = card.ability.extra.Xmult * evens
         }
     end
 end
@@ -28,23 +29,25 @@ table.insert(mods, {
     author = mod_author,
     enabled = true,
     on_enable = function()
-        centerHook.addJoker(self, 'j_keegan_fortress', -- id
+        centerHook.addJoker(self, 'j_evenkeegan_fortress', -- id
         'Even Keegan', -- name
-        jokerEffect(), -- effect function
+        jokerEffect, -- effect function
         nil, -- order
         true, -- unlocked
         true, -- discovered
-        8, -- cost
+        6, -- cost
         {
             x = 0,
             y = 0
         }, -- sprite position
         nil, -- internal effect description
         {
-            mult = 2
+            extra = {
+                Xmult = 1
+            }
         }, -- config
-        {"Even cards", "give {C:red}x2{} Mult"}, -- description text
-        2, -- rarity
+        {"{Even cards give", "{C:red}X2{} Mult"}, -- description text
+        3, -- rarity
         true, -- blueprint compatibility
         true, -- eternal compatibility
         nil, -- exclusion pool flag
@@ -60,6 +63,6 @@ table.insert(mods, {
         )
     end,
     on_disable = function()
-        centerHook.removeJoker(self, "j_keegan_fortress")
+        centerHook.removeJoker(self, "j_evenkeegan_fortress")
     end
 })
