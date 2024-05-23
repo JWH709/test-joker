@@ -4,22 +4,20 @@ local mod_version = "1.0"
 local mod_author = "fortress"
 
 local function jokerEffect(card, context)
-    if card.ability.name == 'Even Keegan' and context.cardarea == G.jokers and not context.before and not context.after and
-        context.full_hand and #context.full_hand >= 1 then
-        local evens = 0
-        for i = 1, #context.full_hand do
-            if context.full_hand[i].base.id == 2 or 4 or 6 or 8 or 10 then
-                evens = evens + 1
+    if context.individual then
+        if context.cardarea == G.play then
+            if card.ability.name == 'Even Keegan' then
+                return {
+                    message = localize {
+                        type = 'variable',
+                        key = 'a_xmult',
+                        vars = {"hello!"}
+                    },
+                    mult = card.ability.extra.mult,
+                    card = card
+                }
             end
         end
-        return {
-            message = localize {
-                type = 'variable',
-                key = 'a_xmult',
-                vars = {card.ability.extra.Xmult}
-            },
-            Xmult_mod = card.ability.extra.Xmult * evens
-        }
     end
 end
 table.insert(mods, {
@@ -43,7 +41,7 @@ table.insert(mods, {
         nil, -- internal effect description
         {
             extra = {
-                Xmult = 1
+                mult = 2
             }
         }, -- config
         {"{Even cards give", "{C:red}X2{} Mult"}, -- description text
